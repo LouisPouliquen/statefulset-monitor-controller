@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	monitorv1alpha1 "github.com/LouisPouliquen/statefulset-monitor-controller/api/v1alpha1"
@@ -51,7 +52,14 @@ var _ = Describe("StatefulSetHealer Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: monitorv1alpha1.StatefulSetHealerSpec{
+						TargetRef: corev1.LocalObjectReference{
+							Name: "fake-statefulset",
+						},
+						MaxRestartAttempts:   3,
+						FailureTimeThreshold: "5m",
+						RestartPolicy:        "Delete",
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
