@@ -17,29 +17,52 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // StatefulSetHealerSpec defines the desired state of StatefulSetHealer.
 type StatefulSetHealerSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// TargetRef points to the StatefulSet to be monitored.
+	// It must be in the same namespace as this CR.
+	//+kubebuilder:validation:Required
+	TargetRef corev1.LocalObjectReference `json:"targetRef"`
 
-	// Foo is an example field of StatefulSetHealer. Edit statefulsethealer_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// MaxRestartAttempts defines how many times a pod can be restarted
+	// before it is considered permanently failed.
+	//+kubebuilder:validation:Minimum=1
+	//+kubebuilder:default:=3
+	MaxRestartAttempts int `json:"maxRestartAttempts"`
+
+	// FailureTimeThreshold is the duration a pod can stay unhealthy
+	// (e.g. NotReady or CrashLoopBackOff) before being restarted.
+	// Duration should be in the format "30s", "5m", "1h".
+	//+kubebuilder:validation:Pattern=`^[0-9]+(s|m|h)$`
+	//+kubebuilder:default:="5m"
+	FailureTimeThreshold string `json:"failureTimeThreshold"`
+
+	// RestartPolicy determines how the controller handles unhealthy pods.
+	// Supported values: "Delete", "Ignore"
+	//+kubebuilder:validation:Enum=Delete;Ignore
+	//+kubebuilder:default:="Delete"
+	RestartPolicy string `json:"restartPolicy,omitempty"`
+}
+
+type PodRestartStatus struct {
+	PodName         string      `json:"podName"`
+	RestartAttempts int         `json:"restartAttempts"`
+	LastFailureTime metav1.Time `json:"lastFailureTime"`
 }
 
 // StatefulSetHealerStatus defines the observed state of StatefulSetHealer.
 type StatefulSetHealerStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	WatchedPods  []PodRestartStatus `json:"watchedPods,omitempty"`
+	LastScanTime metav1.Time        `json:"lastScanTime,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:scope=Namespaced
 
 // StatefulSetHealer is the Schema for the statefulsethealers API.
 type StatefulSetHealer struct {

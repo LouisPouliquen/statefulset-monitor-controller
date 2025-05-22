@@ -39,13 +39,73 @@ spec:
           spec:
             description: StatefulSetHealerSpec defines the desired state of StatefulSetHealer.
             properties:
-              foo:
-                description: Foo is an example field of StatefulSetHealer. Edit statefulsethealer_types.go
-                  to remove/update
+              failureTimeThreshold:
+                default: 5m
+                description: |-
+                  FailureTimeThreshold is the duration a pod can stay unhealthy
+                  (e.g. NotReady or CrashLoopBackOff) before being restarted.
+                  Duration should be in the format "30s", "5m", "1h".
+                pattern: ^[0-9]+(s|m|h)$
                 type: string
+              maxRestartAttempts:
+                default: 3
+                description: |-
+                  MaxRestartAttempts defines how many times a pod can be restarted
+                  before it is considered permanently failed.
+                minimum: 1
+                type: integer
+              restartPolicy:
+                default: Delete
+                description: |-
+                  RestartPolicy determines how the controller handles unhealthy pods.
+                  Supported values: "Delete", "Ignore"
+                enum:
+                - Delete
+                - Ignore
+                type: string
+              targetRef:
+                description: |-
+                  TargetRef points to the StatefulSet to be monitored.
+                  It must be in the same namespace as this CR.
+                properties:
+                  name:
+                    default: ""
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                type: object
+                x-kubernetes-map-type: atomic
+            required:
+            - failureTimeThreshold
+            - maxRestartAttempts
+            - targetRef
             type: object
           status:
             description: StatefulSetHealerStatus defines the observed state of StatefulSetHealer.
+            properties:
+              lastScanTime:
+                format: date-time
+                type: string
+              watchedPods:
+                items:
+                  properties:
+                    lastFailureTime:
+                      format: date-time
+                      type: string
+                    podName:
+                      type: string
+                    restartAttempts:
+                      type: integer
+                  required:
+                  - lastFailureTime
+                  - podName
+                  - restartAttempts
+                  type: object
+                type: array
             type: object
         type: object
     served: true
