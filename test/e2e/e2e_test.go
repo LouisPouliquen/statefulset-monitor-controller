@@ -256,16 +256,63 @@ var _ = Describe("Manager", Ordered, func() {
 			))
 		})
 
-		// +kubebuilder:scaffold:e2e-webhooks-checks
+		It("should delete the unhealthy pod when threshold is exceeded", func() {
+			const healerName = "statefulsethealer"
+			const podName = "demo-db-0"
 
-		// TODO: Customize the e2e test suite with scenarios specific to your project.
-		// Consider applying sample/CR(s) and check their status and/or verifying
-		// the reconciliation by using the metrics, i.e.:
-		// metricsOutput := getMetricsOutput()
-		// Expect(metricsOutput).To(ContainSubstring(
-		//    fmt.Sprintf(`controller_runtime_reconcile_total{controller="%s",result="success"} 1`,
-		//    strings.ToLower(<Kind>),
-		// ))
+			By("deploying the failing StatefulSet")
+			cmd := exec.Command("kubectl", "apply", "-f", "test/resources/demo-db-sts-failonstartup.yaml")
+			_, err := utils.Run(cmd)
+			Expect(err).NotTo(HaveOccurred(), "Failed to deploy the StatefulSet")
+
+			By("deploying the StatefulSetHealer custom resource")
+			cmd = exec.Command("kubectl", "apply", "-f", "config/samples/monitor_v1alpha1_statefulsethealer.yaml")
+			_, err = utils.Run(cmd)
+			Expect(err).NotTo(HaveOccurred(), "Failed to deploy the StatefulSetHealer")
+
+			By("getting the initial pod UID")
+			getPodUID := func() string {
+				cmd := exec.Command("kubectl", "get", "pod", podName, "-n", "default", "-o", "jsonpath={.metadata.uid}")
+				output, err := utils.Run(cmd)
+				Expect(err).NotTo(HaveOccurred(), "Failed to get pod UID")
+				return output
+			}
+			initialUID := getPodUID()
+
+			By("waiting for restartAttempts to reach threshold in healer status")
+			getRestartAttempts := func() int {
+				cmd := exec.Command("kubectl", "get", "statefulsethealer", healerName, "-n", "default", "-o", "json")
+				output, err := utils.Run(cmd)
+				Expect(err).NotTo(HaveOccurred())
+
+				var healer struct {
+					Status struct {
+						WatchedPods []struct {
+							PodName         string `json:"podName"`
+							RestartAttempts int    `json:"restartAttempts"`
+						} `json:"watchedPods"`
+					} `json:"status"`
+				}
+				err = json.Unmarshal([]byte(output), &healer)
+				Expect(err).NotTo(HaveOccurred())
+
+				for _, pod := range healer.Status.WatchedPods {
+					if pod.PodName == podName {
+						return pod.RestartAttempts
+					}
+				}
+				return 0 // not found
+			}
+
+			Eventually(func() int {
+				return getRestartAttempts()
+			}, 2*time.Minute, 5*time.Second).Should(Equal(3))
+
+			By("waiting for the pod to be deleted and recreated")
+			Eventually(func() string {
+				return getPodUID()
+			}, 2*time.Minute, 5*time.Second).ShouldNot(Equal(initialUID), "Expected the pod to be recreated")
+		})
 	})
 })
 

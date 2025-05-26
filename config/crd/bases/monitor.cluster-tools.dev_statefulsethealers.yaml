@@ -54,15 +54,6 @@ spec:
                   before it is considered permanently failed.
                 minimum: 1
                 type: integer
-              restartPolicy:
-                default: Delete
-                description: |-
-                  RestartPolicy determines how the controller handles unhealthy pods.
-                  Supported values: "Delete", "Ignore"
-                enum:
-                - Delete
-                - Ignore
-                type: string
               targetRef:
                 description: |-
                   TargetRef points to the StatefulSet to be monitored.
@@ -101,7 +92,6 @@ spec:
                     restartAttempts:
                       type: integer
                   required:
-                  - lastFailureTime
                   - podName
                   - restartAttempts
                   type: object

@@ -40,18 +40,12 @@ type StatefulSetHealerSpec struct {
 	//+kubebuilder:validation:Pattern=`^[0-9]+(s|m|h)$`
 	//+kubebuilder:default:="5m"
 	FailureTimeThreshold string `json:"failureTimeThreshold"`
-
-	// RestartPolicy determines how the controller handles unhealthy pods.
-	// Supported values: "Delete", "Ignore"
-	//+kubebuilder:validation:Enum=Delete;Ignore
-	//+kubebuilder:default:="Delete"
-	RestartPolicy string `json:"restartPolicy,omitempty"`
 }
 
 type PodRestartStatus struct {
-	PodName         string      `json:"podName"`
-	RestartAttempts int         `json:"restartAttempts"`
-	LastFailureTime metav1.Time `json:"lastFailureTime"`
+	PodName         string       `json:"podName"`
+	RestartAttempts int          `json:"restartAttempts"`
+	LastFailureTime *metav1.Time `json:"lastFailureTime,omitempty"`
 }
 
 // StatefulSetHealerStatus defines the observed state of StatefulSetHealer.

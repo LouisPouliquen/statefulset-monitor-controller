@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-db
+  namespace: default
+spec:
+  ports:
+    - port: 80
+      name: web
+  clusterIP: None  # headless service
+  selector:
+    app: demo-db
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: demo-db
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: demo-db
+  serviceName: demo-db
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: demo-db
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+          command: ["sh", "-c", "sleep 3600"]
+          livenessProbe:
+            exec:
+              command:
+                - /bin/false
+            initialDelaySeconds: 0
+            periodSeconds: 1
+            failureThreshold: 1
