@@ -16,7 +16,16 @@ This controller monitors `StatefulSet` pods for [failure conditions](./internal/
 
 ## ⚙️ Recovery logic
 
-The recovery behavior is configured via two fields in the `StatefulSetHealer` resource:
+The recovery behavior is configured via the following fields in the `StatefulSetHealer` custom resource:
+
+### `targetRef:`
+
+- Specifies the **name of the StatefulSet** to monitor within the same namespace.
+- The controller will watch the pods owned by this StatefulSet for health signals.
+- Format:
+  ```yaml
+  targetRef:
+    name: <statefulset-name>
 
 ### `maxRestartAttempts: <int>`
 
@@ -29,7 +38,7 @@ The recovery behavior is configured via two fields in the `StatefulSetHealer` re
 - This avoids reacting too quickly to transient failures.
 - For example, a value of `5s` means the pod must continuously remain in a failed state for at least 5 seconds before it's considered a failed attempt.
 
-### Example
+### Examples
 
 ```yaml
 apiVersion: monitor.cluster-tools.dev/v1alpha1
@@ -42,6 +51,9 @@ spec:
   maxRestartAttempts: 3
   failureTimeThreshold: 5s
 ```
+
+Other examples can be found in : `config/samples`
+
 
 ## Getting Started
 
