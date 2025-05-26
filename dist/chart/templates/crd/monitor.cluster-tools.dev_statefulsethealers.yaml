@@ -1,0 +1,111 @@
+{{- if .Values.crd.enable }}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.crd.keep }}
+    "helm.sh/resource-policy": keep
+    {{- end }}
+    controller-gen.kubebuilder.io/version: v0.17.2
+  name: statefulsethealers.monitor.cluster-tools.dev
+spec:
+  group: monitor.cluster-tools.dev
+  names:
+    kind: StatefulSetHealer
+    listKind: StatefulSetHealerList
+    plural: statefulsethealers
+    singular: statefulsethealer
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: StatefulSetHealer is the Schema for the statefulsethealers API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: StatefulSetHealerSpec defines the desired state of StatefulSetHealer.
+            properties:
+              failureTimeThreshold:
+                default: 5m
+                description: |-
+                  FailureTimeThreshold is the duration a pod can stay unhealthy
+                  (e.g. NotReady or CrashLoopBackOff) before being restarted.
+                  Duration should be in the format "30s", "5m", "1h".
+                pattern: ^[0-9]+(s|m|h)$
+                type: string
+              maxRestartAttempts:
+                default: 3
+                description: |-
+                  MaxRestartAttempts defines how many times a pod can be restarted
+                  before it is considered permanently failed.
+                minimum: 1
+                type: integer
+              targetRef:
+                description: |-
+                  TargetRef points to the StatefulSet to be monitored.
+                  It must be in the same namespace as this CR.
+                properties:
+                  name:
+                    default: ""
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                type: object
+                x-kubernetes-map-type: atomic
+            required:
+            - failureTimeThreshold
+            - maxRestartAttempts
+            - targetRef
+            type: object
+          status:
+            description: StatefulSetHealerStatus defines the observed state of StatefulSetHealer.
+            properties:
+              lastScanTime:
+                format: date-time
+                type: string
+              watchedPods:
+                items:
+                  properties:
+                    lastFailureTime:
+                      format: date-time
+                      type: string
+                    podName:
+                      type: string
+                    restartAttempts:
+                      type: integer
+                  required:
+                  - podName
+                  - restartAttempts
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+{{- end -}}

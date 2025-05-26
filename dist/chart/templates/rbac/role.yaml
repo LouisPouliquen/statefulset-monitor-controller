@@ -1,0 +1,53 @@
+{{- if .Values.rbac.enable }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+  name: stshealer-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - monitor.cluster-tools.dev
+  resources:
+  - statefulsethealers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - monitor.cluster-tools.dev
+  resources:
+  - statefulsethealers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - monitor.cluster-tools.dev
+  resources:
+  - statefulsethealers/status
+  verbs:
+  - get
+  - patch
+  - update
+{{- end -}}
