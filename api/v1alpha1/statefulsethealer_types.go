@@ -25,20 +25,20 @@ import (
 type StatefulSetHealerSpec struct {
 	// TargetRef points to the StatefulSet to be monitored.
 	// It must be in the same namespace as this CR.
-	//+kubebuilder:validation:Required
+	// +kubebuilder:validation:Required
 	TargetRef corev1.LocalObjectReference `json:"targetRef"`
 
 	// MaxRestartAttempts defines how many times a pod can be restarted
 	// before it is considered permanently failed.
-	//+kubebuilder:validation:Minimum=1
-	//+kubebuilder:default:=3
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:default:=3
 	MaxRestartAttempts int `json:"maxRestartAttempts"`
 
 	// FailureTimeThreshold is the duration a pod can stay unhealthy
 	// (e.g. NotReady or CrashLoopBackOff) before being restarted.
 	// Duration should be in the format "30s", "5m", "1h".
-	//+kubebuilder:validation:Pattern=`^[0-9]+(s|m|h)$`
-	//+kubebuilder:default:="5m"
+	// +kubebuilder:validation:Pattern=`^[0-9]+(s|m|h)$`
+	// +kubebuilder:default:="5m"
 	FailureTimeThreshold string `json:"failureTimeThreshold"`
 }
 

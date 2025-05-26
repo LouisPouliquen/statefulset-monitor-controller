@@ -222,7 +222,7 @@ func (r *StatefulSetHealerReconciler) reconcilePods(ctx context.Context, healer 
 	}
 
 	// Rebuild updatedStatus slice
-	var updatedStatus []monitorv1alpha1.PodRestartStatus
+	updatedStatus := make([]monitorv1alpha1.PodRestartStatus, 0, len(podNames))
 	for _, podName := range podNames {
 		updatedStatus = append(updatedStatus, statusMap[podName])
 	}
