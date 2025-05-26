@@ -1,8 +1,47 @@
-# Stshealer
-// TODO(user): Add simple overview of use/purpose
+# 🩺 StatefulSet Healer Controller
 
-## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+This controller monitors `StatefulSet` pods for [failure conditions](./internal/controller/helpers.go) and automatically initiates recovery actions when a pod is detected as **unhealthy**.
+
+## 🔍 Description
+
+1. **Watches StatefulSets** referenced by a `StatefulSetHealer` custom resource.
+2. **Monitors pod health** based on conditions such as:
+   - Not Ready
+   - `CrashLoopBackOff`
+   - `ImagePullBackOff` / `ErrImagePull`
+   - `OOMKilled`
+   - Failed init containers
+   - Pod in `Failed` or `Unknown` phase
+3. If a pod remains in an unhealthy state for too long, the controller **automatically deletes the pod** to trigger a fresh replacement by the StatefulSet controller.
+
+## ⚙️ Recovery logic
+
+The recovery behavior is configured via two fields in the `StatefulSetHealer` resource:
+
+### `maxRestartAttempts: <int>`
+
+- Defines the **maximum number of restart attempts** allowed for a pod **before it is considered permanently failed**.
+- The controller keeps track of how many times each pod has restarted while in an unhealthy state.
+
+### `failureTimeThreshold: <duration>`
+
+- Specifies the **minimum duration** a pod must remain unhealthy before counting toward `maxRestartAttempts`.
+- This avoids reacting too quickly to transient failures.
+- For example, a value of `5s` means the pod must continuously remain in a failed state for at least 5 seconds before it's considered a failed attempt.
+
+### Example
+
+```yaml
+apiVersion: monitor.cluster-tools.dev/v1alpha1
+kind: StatefulSetHealer
+metadata:
+  name: statefulsethealer-sample
+spec:
+  targetRef:
+    name: demo-db
+  maxRestartAttempts: 3
+  failureTimeThreshold: 5s
+```
 
 ## Getting Started
 
