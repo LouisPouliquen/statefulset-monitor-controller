@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: stshealer
     app.kubernetes.io/managed-by: kustomize
-  name: statefulsethealer
+  name: healer
 spec:
   targetRef:
     name: demo-db

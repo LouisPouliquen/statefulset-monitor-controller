@@ -11,6 +11,8 @@ spec:
     kind: StatefulSetHealer
     listKind: StatefulSetHealerList
     plural: statefulsethealers
+    shortNames:
+    - stshealer
     singular: statefulsethealer
   scope: Namespaced
   versions:

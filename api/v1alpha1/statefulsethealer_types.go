@@ -56,7 +56,7 @@ type StatefulSetHealerStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Namespaced
+// +kubebuilder:resource:scope=Namespaced,shortName=stshealer
 
 // StatefulSetHealer is the Schema for the statefulsethealers API.
 type StatefulSetHealer struct {

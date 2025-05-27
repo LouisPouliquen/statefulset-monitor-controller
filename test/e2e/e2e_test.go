@@ -257,7 +257,7 @@ var _ = Describe("Manager", Ordered, func() {
 		})
 
 		It("should delete the unhealthy pod when threshold is exceeded", func() {
-			const healerName = "statefulsethealer"
+			const healerName = "healer"
 			const podName = "demo-db-0"
 
 			By("deploying the failing StatefulSet")
