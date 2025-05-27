@@ -54,6 +54,10 @@ spec:
 
 Other examples can be found in : `config/samples`
 
+### Demo
+
+[![demo](https://asciinema.org/a/4mFqAlo6iiOBwHadD0hlWvWzW.svg)](https://asciinema.org/a/4mFqAlo6iiOBwHadD0hlWvWzW)
+
 
 ## Getting Started
 
